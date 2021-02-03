@@ -1,76 +1,97 @@
-// Cistercian numerals
+// Cistercian Clock
+// https://github.com/ednl/cistercian-clock
+// https://en.wikipedia.org/wiki/Cistercian_numerals
 
-const cist = [
-    [],                 // 0
-    [0,0,1,0],          // 1
-    [0,1,1,1],          // 2
-    [0,0,1,1],          // 3
-    [0,1,1,0],          // 4
-    [0,0,1,0,0,1],      // 5
-    [1,0,1,1],          // 6
-    [0,0,1,0,1,1],      // 7
-    [0,1,1,1,1,0],      // 8
-    [0,0,1,0,1,1,0,1],  // 9
+// grid square size in pixels
+// set with query parameter ?size=...
+let SIZE = 50;
+
+// (x,y) coordinate pairs of the symbol path for units
+// where (0,0) is top-centre and (1,0) is top-right
+const sympath = [
+    [],                // 0
+    [0,0,1,0],         // 1
+    [0,1,1,1],         // 2
+    [0,0,1,1],         // 3
+    [0,1,1,0],         // 4
+    [0,0,1,0,0,1],     // 5
+    [1,0,1,1],         // 6
+    [0,0,1,0,1,1],     // 7
+    [0,1,1,1,1,0],     // 8
+    [0,0,1,0,1,1,0,1]  // 9
 ];
 
-function setup() {
-    createCanvas(650, 250);
-    stroke(0);
-    noFill();
-}
-
 function digit(d) {
-    //console.log(d);
-    beginShape();
-    for (let i = 0; i < cist[d].length; i += 2) {
-        vertex(cist[d][i], cist[d][i + 1]);
+    let p;
+    if (p = sympath[d]) {
+        beginShape();
+        for (let i = 0; i < p.length; i += 2) {
+            vertex(p[i], p[i + 1]);
+        }
+        endShape();
     }
-    endShape();
 }
 
-function num(x) {
+function symbol(x) {
+    // base line
     line(0, 0, 0, 3);
+    
+    // units, top-right
     let n = Math.round(x);
     let m = n % 10;
     digit(m);
 
-    // tens
+    // tens, top-left
     scale(-1, 1);
     n = (n - m) / 10;
     m = n % 10;
     digit(m);
   
-    // hundreds
+    // hundreds, bottom-right
     translate(0, 3);
     scale(-1, -1);
     n = (n - m) / 10;
     m = n % 10;
     digit(m);
 
-    // thousands
+    // thousands, bottom-left
     scale(-1, 1);
     n = (n - m) / 10;
     m = n % 10;
     digit(m);
   
-    // reset
+    // reset position and orientation
     translate(0, 3);
     scale(-1, -1);
 }
 
+function setup() {
+    const s = parseInt((new URL(document.location)).searchParams.get("size"));
+    if (!isNaN(s) && s > 0) {
+        SIZE = s;
+    }
+    createCanvas(SIZE * 13, SIZE * 5);
+    noFill();
+}
+
 function draw() {
-    background(20);
+    // clear
+    background(15);
+
+    // grid
     stroke(0);
     strokeWeight(1);
     for (let i = 1; i < 5; ++i) {
-        line(0, i * 50, 650, i * 50);
+        line(0, i * SIZE, width, i * SIZE);
     }
     for (let i = 1; i < 13; ++i) {
-        line(i * 50, 0, i * 50, 250);
+        line(i * SIZE, 0, i * SIZE, height);
     }
-    scale(width / 13, height / 5);
-    strokeWeight(75 / height);
-    stroke(102, 255, 51);
+
+    // clock
+    scale(SIZE, SIZE);
+    strokeWeight(0.3);
+    stroke(102, 255, 51);  // green
 
     const d = new Date();
     const year = d.getFullYear();
@@ -79,14 +100,14 @@ function draw() {
     const sec = d.getSeconds();
 
     translate(2, 1);
-    num(year);
+    symbol(year);
 
     translate(3, 0);
-    num(date);
+    symbol(date);
 
     translate(3, 0);
-    num(time);
+    symbol(time);
 
     translate(3, 0);
-    num(sec);
+    symbol(sec);
 }
